@@ -7,7 +7,11 @@ import org.apache.ibatis.annotations.Options;
 public interface UserMapper {
 
     @Insert({
-            "insert into t_user (username,password) values (#{username},#{password})"
+            "insert into t_user ",
+            "(username,password) ",
+            "values (",
+            "#{username},",
+            "#{password})"
     })
     @Options(useGeneratedKeys = true,keyProperty = "id")
     Boolean insert(User user);

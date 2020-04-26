@@ -1,26 +1,33 @@
 package fun.vyse.cloud.shield.config;
 
 import fun.vyse.cloud.shield.domain.DataShieldProperties;
-import fun.vyse.cloud.shield.mybatis.AESEncryptHandler;
+import fun.vyse.cloud.shield.interceptor.EncryptFieldInterceptor;
+import fun.vyse.cloud.shield.interceptor.EncryptResultInterceptor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.ibatis.type.TypeHandler;
+import org.apache.ibatis.plugin.Interceptor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
 @Slf4j
-@ConditionalOnProperty(prefix = "app.data.shield", name = "enabled", havingValue = "true")
 @EnableConfigurationProperties(DataShieldProperties.class)
+@ConditionalOnProperty(prefix = "app.data.shield", value = "enable",havingValue = "true")
 public class DataShieldAutoConfiguration {
 
-    private DataShieldAutoConfiguration() {
-        log.debug("cloud shield init ...");
-        log.debug("cloud shield init ....");
-        log.debug("cloud shield init .....");
+    private final DataShieldProperties dataShieldProperties;
+
+    public DataShieldAutoConfiguration(DataShieldProperties dataShieldProperties) {
+        this.dataShieldProperties = dataShieldProperties;
     }
 
     @Bean
-    public TypeHandler aesEncryptHandler() {
-        return new AESEncryptHandler();
+    public Interceptor encryptFieldInterceptor(){
+        return new EncryptFieldInterceptor();
+    }
+
+    @Bean
+    public Interceptor encryptResultInterceptor() {
+        EncryptResultInterceptor interceptor = new EncryptResultInterceptor();
+        return interceptor;
     }
 }

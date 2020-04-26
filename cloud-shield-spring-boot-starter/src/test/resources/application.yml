@@ -20,8 +20,8 @@ spring:
     username: vyse
     password: p@ssw0rd
     driver-class-name: com.mysql.cj.jdbc.Driver
-mybatis:
-  type-handlers-package: fun.vyse.cloud.shield.mybatis
+#mybatis:
+#  type-handlers-package: fun.vyse.cloud.shield.mybatis
 
 
 logging:
