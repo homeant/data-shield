@@ -1,8 +1,8 @@
 package fun.vyse.cloud.shield.config;
 
 import fun.vyse.cloud.shield.domain.DataShieldProperties;
-import fun.vyse.cloud.shield.interceptor.EncryptFieldInterceptor;
-import fun.vyse.cloud.shield.interceptor.EncryptResultInterceptor;
+import fun.vyse.cloud.shield.interceptor.EncryptInterceptor;
+import fun.vyse.cloud.shield.interceptor.DecodeInterceptor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.plugin.Interceptor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -22,12 +22,12 @@ public class DataShieldAutoConfiguration {
 
     @Bean
     public Interceptor encryptFieldInterceptor(){
-        return new EncryptFieldInterceptor();
+        return new EncryptInterceptor();
     }
 
     @Bean
     public Interceptor encryptResultInterceptor() {
-        EncryptResultInterceptor interceptor = new EncryptResultInterceptor();
+        DecodeInterceptor interceptor = new DecodeInterceptor();
         return interceptor;
     }
 }

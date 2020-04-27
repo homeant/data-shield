@@ -1,5 +1,6 @@
 package fun.vyse.cloud.shield.interceptor;
 
+import fun.vyse.cloud.shield.annotation.TableField;
 import fun.vyse.cloud.shield.encrypt.AES;
 import org.apache.ibatis.executor.resultset.ResultSetHandler;
 import org.apache.ibatis.mapping.MappedStatement;
@@ -16,6 +17,7 @@ import java.lang.reflect.Method;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 @Intercepts({
         @Signature(
@@ -24,8 +26,9 @@ import java.util.List;
                 args = {Statement.class}
         )
 })
-public class EncryptResultInterceptor implements Interceptor {
+public class DecodeInterceptor implements Interceptor {
 
+    private Properties properties;
 
     private static final ObjectFactory DEFAULT_OBJECT_FACTORY = new DefaultObjectFactory();
     private static final ObjectWrapperFactory DEFAULT_OBJECT_WRAPPER_FACTORY = new DefaultObjectWrapperFactory();
@@ -37,7 +40,7 @@ public class EncryptResultInterceptor implements Interceptor {
         ResultSetHandler resultSetHandler = (ResultSetHandler) invocation.getTarget();
         MetaObject metaResultSetHandler = MetaObject.forObject(resultSetHandler, DEFAULT_OBJECT_FACTORY, DEFAULT_OBJECT_WRAPPER_FACTORY, REFLECTOR_FACTORY);
         MappedStatement mappedStatement = (MappedStatement) metaResultSetHandler.getValue("mappedStatement");
-        EncryptField annotation = getEncryptResultAnnotation(mappedStatement);
+        TableField annotation = getEncryptResultAnnotation(mappedStatement);
         Object returnValue = invocation.proceed();
         if (annotation != null && returnValue != null) {
             // 对结果进行处理
@@ -62,6 +65,10 @@ public class EncryptResultInterceptor implements Interceptor {
 
     }
 
+    @Override
+    public void setProperties(Properties properties) {
+        this.properties = properties;
+    }
 
     /**
      * EncryptResult
@@ -69,22 +76,22 @@ public class EncryptResultInterceptor implements Interceptor {
      * @param mappedStatement MappedStatement
      * @return EncryptResult
      */
-    private EncryptField getEncryptResultAnnotation(MappedStatement mappedStatement) {
-        EncryptField encryptField = null;
+    private TableField getEncryptResultAnnotation(MappedStatement mappedStatement) {
+        TableField tableField = null;
         try {
             String id = mappedStatement.getId();
             String className = id.substring(0, id.lastIndexOf("."));
             String methodName = id.substring(id.lastIndexOf(".") + 1);
             final Method[] method = Class.forName(className).getMethods();
             for (Method me : method) {
-                if (me.getName().equals(methodName) && me.isAnnotationPresent(EncryptField.class)) {
-                    encryptField = me.getAnnotation(EncryptField.class);
+                if (me.getName().equals(methodName) && me.isAnnotationPresent(TableField.class)) {
+                    tableField = me.getAnnotation(TableField.class);
                     break;
                 }
             }
         } catch (Exception ex) {
             ex.printStackTrace();
         }
-        return encryptField;
+        return tableField;
     }
 }
