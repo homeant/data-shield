@@ -9,6 +9,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
+import java.util.Optional;
+import java.util.Properties;
+
 @Slf4j
 @EnableConfigurationProperties(DataShieldProperties.class)
 @ConditionalOnProperty(prefix = "app.data.shield", value = "enable",havingValue = "true")
@@ -20,14 +23,41 @@ public class DataShieldAutoConfiguration {
         this.dataShieldProperties = dataShieldProperties;
     }
 
+    /**
+     * 加密
+     * @return
+     */
     @Bean
-    public Interceptor encryptFieldInterceptor(){
-        return new EncryptInterceptor();
+    public Interceptor encryptInterceptor(){
+        EncryptInterceptor encryptInterceptor = new EncryptInterceptor();
+        encryptInterceptor.setProperties(getProperties());
+        return encryptInterceptor;
     }
 
+
+    /**
+     * 解密
+     * @return
+     */
     @Bean
-    public Interceptor encryptResultInterceptor() {
+    public Interceptor decodeInterceptor() {
         DecodeInterceptor interceptor = new DecodeInterceptor();
+        interceptor.setProperties(getProperties());
         return interceptor;
+    }
+
+    private Properties getProperties(){
+        Properties properties = new Properties();
+        properties.put("strategy",dataShieldProperties.getStrategy());
+        Optional.ofNullable(dataShieldProperties.getKey()).ifPresent(r->{
+            properties.put("key", dataShieldProperties.getKey());
+        });
+        Optional.ofNullable(dataShieldProperties.getPublicKey()).ifPresent(r->{
+            properties.put("publicKey", dataShieldProperties.getKey());
+        });
+        Optional.ofNullable(dataShieldProperties.getPrivateKey()).ifPresent(r->{
+            properties.put("privateKey", dataShieldProperties.getKey());
+        });
+        return properties;
     }
 }

@@ -37,12 +37,16 @@ public class EncryptInterceptor implements Interceptor {
                     if (field.getGenericType() == String.class) {
                         field.setAccessible(true);
                         String value = (String) field.get(parameter);
-                        field.set(parameter, AES.encrypt(value));
+                        field.set(parameter, AES.encrypt(value,getPublicKey()));
                     }
                 }
             }
         }
         return invocation.proceed();
+    }
+
+    private String getPublicKey(){
+        return properties.getProperty("publicKey");
     }
 
     @Override

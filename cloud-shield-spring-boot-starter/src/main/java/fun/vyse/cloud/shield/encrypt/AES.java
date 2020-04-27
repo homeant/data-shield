@@ -7,17 +7,12 @@ import java.util.Base64;
 
 public class AES {
 
-    // 密钥
-    public static String key = "AD42F6697B035B7580E4FEF93BE20BAD";
+
     private static String charset = "utf-8";
     // 偏移量
     private static int offset = 16;
     private static String transformation = "AES/CBC/PKCS5Padding";
     private static String algorithm = "AES";
-
-    public static String encrypt(String content) {
-        return encrypt(content, key);
-    }
 
     public static String encrypt(String content, String key) {
         try {
@@ -31,5 +26,9 @@ public class AES {
         } catch (Exception e) {
         }
         return null;
+    }
+
+    public static String decode(String content,String key){
+        return "";
     }
 }

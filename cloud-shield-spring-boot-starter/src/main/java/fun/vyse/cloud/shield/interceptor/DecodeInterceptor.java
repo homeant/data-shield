@@ -40,7 +40,7 @@ public class DecodeInterceptor implements Interceptor {
         ResultSetHandler resultSetHandler = (ResultSetHandler) invocation.getTarget();
         MetaObject metaResultSetHandler = MetaObject.forObject(resultSetHandler, DEFAULT_OBJECT_FACTORY, DEFAULT_OBJECT_WRAPPER_FACTORY, REFLECTOR_FACTORY);
         MappedStatement mappedStatement = (MappedStatement) metaResultSetHandler.getValue("mappedStatement");
-        TableField annotation = getEncryptResultAnnotation(mappedStatement);
+        TableField annotation = getAnnotation(mappedStatement);
         Object returnValue = invocation.proceed();
         if (annotation != null && returnValue != null) {
             // 对结果进行处理
@@ -51,7 +51,7 @@ public class DecodeInterceptor implements Interceptor {
                         Object returnItem = list.get(index);
                         if (returnItem instanceof String) {
                             List<String> stringList = (List<String>) list;
-                            stringList.set(index, AES.encrypt((String) returnItem));
+                            stringList.set(index, AES.decode((String) returnItem,getPrivateKey()));
                         }
                     }
                 }
@@ -65,6 +65,10 @@ public class DecodeInterceptor implements Interceptor {
 
     }
 
+    private String getPrivateKey(){
+        return properties.getProperty("privateKey");
+    }
+
     @Override
     public void setProperties(Properties properties) {
         this.properties = properties;
@@ -76,7 +80,7 @@ public class DecodeInterceptor implements Interceptor {
      * @param mappedStatement MappedStatement
      * @return EncryptResult
      */
-    private TableField getEncryptResultAnnotation(MappedStatement mappedStatement) {
+    private TableField getAnnotation(MappedStatement mappedStatement) {
         TableField tableField = null;
         try {
             String id = mappedStatement.getId();
