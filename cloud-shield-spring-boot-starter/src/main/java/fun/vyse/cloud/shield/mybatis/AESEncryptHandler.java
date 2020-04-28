@@ -1,3 +1,4 @@
+/*
 package fun.vyse.cloud.shield.mybatis;
 
 import fun.vyse.cloud.shield.encrypt.AES;
@@ -11,9 +12,11 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+*/
 /**
  * AES加密
- */
+ *//*
+
 @MappedTypes({String.class})
 @MappedJdbcTypes({JdbcType.VARCHAR})
 public class AESEncryptHandler extends BaseTypeHandler {
@@ -39,3 +42,4 @@ public class AESEncryptHandler extends BaseTypeHandler {
         return columnValue;
     }
 }
+*/

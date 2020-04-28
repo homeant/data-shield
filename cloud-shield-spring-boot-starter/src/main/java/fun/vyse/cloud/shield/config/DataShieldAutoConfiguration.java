@@ -50,13 +50,13 @@ public class DataShieldAutoConfiguration {
         Properties properties = new Properties();
         properties.put("strategy",dataShieldProperties.getStrategy());
         Optional.ofNullable(dataShieldProperties.getKey()).ifPresent(r->{
-            properties.put("key", dataShieldProperties.getKey());
+            properties.put("key", r);
         });
         Optional.ofNullable(dataShieldProperties.getPublicKey()).ifPresent(r->{
-            properties.put("publicKey", dataShieldProperties.getKey());
+            properties.put("publicKey", r);
         });
         Optional.ofNullable(dataShieldProperties.getPrivateKey()).ifPresent(r->{
-            properties.put("privateKey", dataShieldProperties.getKey());
+            properties.put("privateKey", r);
         });
         return properties;
     }

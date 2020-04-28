@@ -9,6 +9,8 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.Configuration;
 import org.testng.annotations.Test;
 
+import java.util.Optional;
+
 
 @Slf4j
 @MapperScan("fun.vyse.cloud.shield.mapper")
@@ -23,7 +25,10 @@ public class AbstractDataTest extends AbstractDataShieldTest {
         user.setUsername("tom");
         user.setPassword("p@ssw0rd");
         userMapper.insert(user);
-        log.debug("mapper:{}",userMapper);
+        Optional<User> optional = userMapper.selectOn(user.getId());
+        optional.ifPresent(r->{
+            log.debug("user:{}",r);
+        });
     }
 
     @Configuration

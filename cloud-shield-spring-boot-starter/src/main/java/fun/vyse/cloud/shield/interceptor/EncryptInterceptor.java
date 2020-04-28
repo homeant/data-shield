@@ -11,7 +11,6 @@ import org.apache.ibatis.plugin.Invocation;
 import org.apache.ibatis.plugin.Signature;
 
 import java.lang.reflect.Field;
-import java.util.Objects;
 import java.util.Properties;
 
 @Intercepts({
@@ -33,7 +32,7 @@ public class EncryptInterceptor implements Interceptor {
             Field[] declaredFields = parameter.getClass().getDeclaredFields();
             for (Field field : declaredFields) {
                 TableField annotation = field.getAnnotation(TableField.class);
-                if (annotation != null && Objects.equals(Boolean.TRUE,annotation.encrypt())) {
+                if (annotation != null && annotation.encrypt()) {
                     if (field.getGenericType() == String.class) {
                         field.setAccessible(true);
                         String value = (String) field.get(parameter);

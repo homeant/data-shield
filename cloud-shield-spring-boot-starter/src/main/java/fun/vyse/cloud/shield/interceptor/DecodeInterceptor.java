@@ -42,7 +42,7 @@ public class DecodeInterceptor implements Interceptor {
         MappedStatement mappedStatement = (MappedStatement) metaResultSetHandler.getValue("mappedStatement");
         TableField annotation = getAnnotation(mappedStatement);
         Object returnValue = invocation.proceed();
-        if (annotation != null && returnValue != null) {
+        if (annotation != null && returnValue != null && annotation.decode()) {
             // 对结果进行处理
             try {
                 if (returnValue instanceof ArrayList<?>) {

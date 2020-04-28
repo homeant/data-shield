@@ -3,6 +3,9 @@ package fun.vyse.cloud.shield.mapper;
 import fun.vyse.cloud.shield.domain.User;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Options;
+import org.apache.ibatis.annotations.Select;
+
+import java.util.Optional;
 
 public interface UserMapper {
 
@@ -15,4 +18,9 @@ public interface UserMapper {
     })
     @Options(useGeneratedKeys = true,keyProperty = "id")
     Boolean insert(User user);
+
+    @Select({
+            "select id,username,password from t_user where id = #{id}"
+    })
+    Optional<User> selectOn(Integer id);
 }
