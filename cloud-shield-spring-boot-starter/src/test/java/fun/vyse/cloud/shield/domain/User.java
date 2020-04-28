@@ -7,8 +7,8 @@ import lombok.Data;
 public class User {
     private Integer id;
 
-    @TableField(encrypt = true,decode = true)
     private String username;
 
+    @TableField(encrypt = true,decode = true)
     private String password;
 }

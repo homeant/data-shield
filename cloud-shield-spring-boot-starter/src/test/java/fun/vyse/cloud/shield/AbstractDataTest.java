@@ -23,7 +23,7 @@ public class AbstractDataTest extends AbstractDataShieldTest {
     public void test(){
         User user = new User();
         user.setUsername("tom");
-        user.setPassword("p@ssw0rd");
+        user.setPassword("p@ssw0rd1234567");
         userMapper.insert(user);
         Optional<User> optional = userMapper.selectOn(user.getId());
         optional.ifPresent(r->{
