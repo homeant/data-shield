@@ -21,6 +21,7 @@ public class DataShieldAutoConfiguration {
 
     public DataShieldAutoConfiguration(DataShieldProperties dataShieldProperties) {
         this.dataShieldProperties = dataShieldProperties;
+        this.dataShieldProperties.check();
     }
 
     /**

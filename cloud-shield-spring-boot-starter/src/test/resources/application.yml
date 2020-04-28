@@ -33,5 +33,5 @@ app:
   data:
     shield:
       enable: true
-      public-key: 'AD42F6697B035B7580E4FEF93BE20BAD'
-      private-key: 'AD42F6697B035B7580E4FEF93BE20BAD'
+      strategy: aes
+      key: AD42F6697B035B7580E4FEF93BE20BAD

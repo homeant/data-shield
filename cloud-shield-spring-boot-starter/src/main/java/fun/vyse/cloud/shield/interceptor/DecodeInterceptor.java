@@ -60,7 +60,7 @@ public class DecodeInterceptor implements Interceptor {
                                     if (field.getGenericType() == String.class) {
                                         field.setAccessible(true);
                                         String value = (String) field.get(returnItem);
-                                        field.set(returnItem, AES.decode(value,getPrivateKey()));
+                                        field.set(returnItem, AES.decode(value,getKey()));
                                     }
                                 }
                             }
@@ -77,8 +77,8 @@ public class DecodeInterceptor implements Interceptor {
 
     }
 
-    private String getPrivateKey(){
-        return properties.getProperty("privateKey");
+    private String getKey(){
+        return properties.getProperty("key");
     }
 
     @Override
