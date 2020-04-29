@@ -1,18 +1,19 @@
 package fun.vyse.cloud.shield.encrypt;
 
 import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.DESKeySpec;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.util.Base64;
 
-public class AES {
-
-
+public class DES {
     private static String CHARSET = "utf-8";
     // 偏移量
     private static int OFFSET = 16;
-    private static String TRANSFORMATION = "AES/CBC/PKCS5Padding";
-    private static String ALGORITHM = "AES";
+    private static String TRANSFORMATION = "DES/CBC/PKCS5Padding";
+    private static String ALGORITHM = "DES";
 
 
     public static String encrypt(String content, String password) throws Exception {

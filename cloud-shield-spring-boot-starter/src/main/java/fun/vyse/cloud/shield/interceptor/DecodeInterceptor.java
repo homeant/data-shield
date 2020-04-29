@@ -15,7 +15,6 @@ import org.apache.ibatis.reflection.wrapper.DefaultObjectWrapperFactory;
 import org.apache.ibatis.reflection.wrapper.ObjectWrapperFactory;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
