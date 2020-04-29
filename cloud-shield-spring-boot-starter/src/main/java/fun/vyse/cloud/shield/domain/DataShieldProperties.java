@@ -21,7 +21,9 @@ public class DataShieldProperties {
     private String privateKey;
 
     public enum Strategy{
-        AES;
+        AES,
+        DES,
+        RSA;
     }
 
     public void check(){
