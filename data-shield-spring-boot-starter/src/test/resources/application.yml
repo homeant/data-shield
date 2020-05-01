@@ -1,0 +1,39 @@
+spring:
+  datasource:
+    hikari:
+      minimum-idle: 5
+      # 空闲连接存活最大时间，默认600000（10分钟）
+      idle-timeout: 180000
+      # 连接池最大连接数，默认是10
+      maximum-pool-size: 10
+      # 此属性控制从池返回的连接的默认自动提交行为,默认值：true
+      auto-commit: true
+      # 连接池名称
+      pool-name: MyHikariCP
+      # 此属性控制池中连接的最长生命周期，值0表示无限生命周期，默认1800000即30分钟
+      max-lifetime: 1800000
+      # 数据库连接超时时间,默认30秒，即30000
+      connection-timeout: 30000
+      connection-test-query: SELECT 1
+    type: com.zaxxer.hikari.HikariDataSource
+    url: jdbc:mysql://localhost:3306/vyse
+    username: vyse
+    password: p@ssw0rd
+    driver-class-name: com.mysql.cj.jdbc.Driver
+#mybatis:
+#  type-handlers-package: fun.vyse.cloud.shield.mybatis
+
+
+logging:
+  level:
+    fun:
+      vyse:
+        cloud: debug
+app:
+  data:
+    shield:
+      enable: true
+      strategy: aes
+      key: AD42F6697B035B7580E4FEF93BE20BAD
+      public-key: MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCNcXK05rSq2QfY8dhAiDcVyZMz6oXa58aZizyPtcyFBd7Fyex0NHMFP1rNz/UlVLRrXkB4oj1Qha/42+RM9QXMtrAbIGRL/tpHLSw0KCIPHlf+++TUFq0OEhwWceLSfpafGRfMyIkOQWJoLe0AHWAajZOAyrPHzo/k+uzIS15JawIDAQAB
+      private-key: MIICdgIBADANBgkqhkiG9w0BAQEFAASCAmAwggJcAgEAAoGBAI1xcrTmtKrZB9jx2ECINxXJkzPqhdrnxpmLPI+1zIUF3sXJ7HQ0cwU/Ws3P9SVUtGteQHiiPVCFr/jb5Ez1Bcy2sBsgZEv+2kctLDQoIg8eV/775NQWrQ4SHBZx4tJ+lp8ZF8zIiQ5BYmgt7QAdYBqNk4DKs8fOj+T67MhLXklrAgMBAAECgYA6xclEIhkwZL4+B0A0kGVTSE9CY1D7hROg+ZpQnNo+7BGFXkJChwjERW8V1jOnL2tIsgFYHxIbQ3G7lqNm1ulxaIA8gyaVZ5bSptGNilFEbzgxKJqfeNcFlhI91vIC61oXtfReS4NBf1ibZzACBWLfZ1LEOv8Bz/S/F3/KFCV0AQJBAMrzghuvAIMChAyx1CNZvlAUsH6+CMiQvTUTMuKX7daYcZ/V2admD2nqRkq3+owy9vTWiJMWnIDKWtXG/XyvDNsCQQCyaiAOTi7Fuu/4utxMFrEQecB+Pnu0esn4yYdr8oJP4UUWeWlalEiEzGl8N/GC/d1ovI9m0AnFlnhIDbYp/RKxAkEAs9/Q0AJx/KttJ+cwcshmgYlkyGBbXo/R8kl6zxQCyzC/e/9IcjJltOTbufuHx1ygPm4qC9t9iDRQ/6nnHuvzAwJAYO0uxRbMajeIr0Q08lFRmHXMkck4Q3CB0VsK6yYwjV0Av5juF3t/ekXi+M0bs+JfKstlzKEw7ds1NU/dqyoFwQJAKWxAwvc5vLDVow0s7tVOkD7tGR5uRL5FgE3F6Hg7I+v9Rua/cPlKitahRnjUBKY8QBZtvHJ2a/8olfIhHNQ4ew==

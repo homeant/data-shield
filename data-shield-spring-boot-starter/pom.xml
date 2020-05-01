@@ -4,14 +4,14 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>fun.vyse.cloud</groupId>
-        <artifactId>cloud-shield</artifactId>
+        <artifactId>data-shield</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
     <groupId>fun.vyse.cloud</groupId>
-    <artifactId>cloud-shield-spring-boot-starter</artifactId>
+    <artifactId>data-shield-spring-boot-starter</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>cloud-shield-spring-boot-starter</name>
-    <description>cloud-shield spring-boot starter</description>
+    <name>data-shield-spring-boot-starter</name>
+    <description>data-shield spring-boot starter</description>
 
 
     <dependencies>

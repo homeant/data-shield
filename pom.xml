@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>fun.vyse.cloud</groupId>
-    <artifactId>cloud-shield</artifactId>
+    <artifactId>data-shield</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>cloud-shield</name>
