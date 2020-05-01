@@ -1,7 +1,7 @@
 /*
 package fun.vyse.cloud.shield.mybatis;
 
-import fun.vyse.cloud.shield.encrypt.AES;
+import fun.vyse.cloud.shield.util.AES;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.MappedJdbcTypes;

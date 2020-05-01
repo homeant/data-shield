@@ -1,6 +1,6 @@
-package fun.vyse.cloud.shield.mapper;
+package fun.vyse.cloud.data.shield.mapper;
 
-import fun.vyse.cloud.shield.domain.User;
+import fun.vyse.cloud.data.shield.domain.User;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Options;
 import org.apache.ibatis.annotations.Select;

@@ -1,4 +1,4 @@
-package fun.vyse.cloud.shield.util;
+package fun.vyse.cloud.data.shield.util;
 
 import java.util.Base64;
 

@@ -1,6 +1,6 @@
-package fun.vyse.cloud.shield.domain;
+package fun.vyse.cloud.data.shield.domain;
 
-import fun.vyse.cloud.shield.annotation.TableField;
+import fun.vyse.cloud.data.shield.annotation.TableField;
 import lombok.Data;
 
 @Data

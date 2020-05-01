@@ -1,4 +1,4 @@
-package fun.vyse.cloud.shield.annotation;
+package fun.vyse.cloud.data.shield.annotation;
 
 import java.lang.annotation.*;
 

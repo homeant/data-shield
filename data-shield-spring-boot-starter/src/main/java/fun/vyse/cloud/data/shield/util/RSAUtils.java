@@ -1,4 +1,4 @@
-package fun.vyse.cloud.shield.encrypt;
+package fun.vyse.cloud.data.shield.util;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -13,25 +13,24 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.HashMap;
 import java.util.Map;
-import static fun.vyse.cloud.shield.util.Base64Utils.*;
 
 @Slf4j
-public class RSA {
+public class RSAUtils {
 
     public static final String ALGORITHM = "RSA";
 
     private static final String PUBLIC_KEY = "publicKey";
     private static final String PRIVATE_KEY = "privateKey";
 
-    public static Map<String,String> init() throws Exception {
+    public static Map<String,String> init(int keySize) throws Exception {
         Map<String,String> keyMap = new HashMap<>(2);
         KeyPairGenerator keyPairGen = KeyPairGenerator.getInstance(ALGORITHM);
-        keyPairGen.initialize(1024);
+        keyPairGen.initialize(keySize);
         KeyPair keyPair = keyPairGen.generateKeyPair();
         RSAPublicKey publicKey = (RSAPublicKey) keyPair.getPublic();// 公钥
         RSAPrivateKey privateKey = (RSAPrivateKey) keyPair.getPrivate();// 私钥
-        keyMap.put(PUBLIC_KEY, encrypt(publicKey.getEncoded()));
-        keyMap.put(PRIVATE_KEY, encrypt(privateKey.getEncoded()));
+        keyMap.put(PUBLIC_KEY, Base64Utils.encrypt(publicKey.getEncoded()));
+        keyMap.put(PRIVATE_KEY, Base64Utils.encrypt(privateKey.getEncoded()));
         return keyMap;
     }
 
@@ -43,7 +42,7 @@ public class RSA {
      * @throws Exception
      */
     public static String encryptByPublicKey(String content, String key) throws Exception {
-        byte[] keyBytes = decrypt(key);// 对公钥解密
+        byte[] keyBytes = Base64Utils.decrypt(key);// 对公钥解密
         // 取得公钥
         X509EncodedKeySpec x509KeySpec = new X509EncodedKeySpec(keyBytes);
         KeyFactory keyFactory = KeyFactory.getInstance(ALGORITHM);
@@ -51,7 +50,7 @@ public class RSA {
         // 对数据加密
         Cipher cipher = Cipher.getInstance(keyFactory.getAlgorithm());
         cipher.init(Cipher.ENCRYPT_MODE, publicKey);
-        return encrypt(cipher.doFinal(content.getBytes()));
+        return Base64Utils.encrypt(cipher.doFinal(content.getBytes()));
     }
 
     /**
@@ -62,7 +61,7 @@ public class RSA {
      * @throws Exception
      */
     public static String decryptByPublicKey(String content, String key) throws Exception {
-        byte[] keyBytes = decrypt(key);// 对密钥解密
+        byte[] keyBytes = Base64Utils.decrypt(key);// 对密钥解密
         // 取得公钥
         X509EncodedKeySpec x509KeySpec = new X509EncodedKeySpec(keyBytes);
         KeyFactory keyFactory = KeyFactory.getInstance(ALGORITHM);
@@ -70,7 +69,7 @@ public class RSA {
         // 对数据解密
         Cipher cipher = Cipher.getInstance(keyFactory.getAlgorithm());
         cipher.init(Cipher.DECRYPT_MODE, publicKey);
-        return new String(cipher.doFinal(decrypt(content)));
+        return new String(cipher.doFinal(Base64Utils.decrypt(content)));
     }
 
     /**
@@ -81,7 +80,7 @@ public class RSA {
      * @throws Exception
      */
     public static byte[] encryptByPrivateKey(String content, String key) throws Exception {
-        byte[] keyBytes = decrypt(key);// 对密钥解密
+        byte[] keyBytes = Base64Utils.decrypt(key);// 对密钥解密
         // 取得私钥
         PKCS8EncodedKeySpec pkcs8KeySpec = new PKCS8EncodedKeySpec(keyBytes);
         KeyFactory keyFactory = KeyFactory.getInstance(ALGORITHM);
@@ -100,7 +99,7 @@ public class RSA {
      * @throws Exception
      */
     public static String decryptByPrivateKey(String content, String key) throws Exception {
-        byte[] keyBytes = decrypt(key);// 对密钥解密
+        byte[] keyBytes = Base64Utils.decrypt(key);// 对密钥解密
         // 取得私钥
         PKCS8EncodedKeySpec pkcs8KeySpec = new PKCS8EncodedKeySpec(keyBytes);
         KeyFactory keyFactory = KeyFactory.getInstance(ALGORITHM);
@@ -108,6 +107,6 @@ public class RSA {
         // 对数据解密
         Cipher cipher = Cipher.getInstance(keyFactory.getAlgorithm());
         cipher.init(Cipher.DECRYPT_MODE, privateKey);
-        return new String(cipher.doFinal(decrypt(content)));
+        return new String(cipher.doFinal(Base64Utils.decrypt(content)));
     }
 }
