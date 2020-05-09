@@ -1,9 +1,6 @@
 package fun.vyse.cloud.data.shield.util;
 
 import javax.crypto.Cipher;
-import javax.crypto.SecretKey;
-import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.DESKeySpec;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.util.Base64;
@@ -17,20 +14,28 @@ public class DESUtils {
 
 
     public static String encrypt(String content, String password) throws Exception {
+        if(content==null){
+            return null;
+        }
         SecretKeySpec keySpec = new SecretKeySpec(password.getBytes(), ALGORITHM);
         IvParameterSpec iv = new IvParameterSpec(password.getBytes(), 0, OFFSET);
         Cipher cipher = Cipher.getInstance(TRANSFORMATION);
-        cipher.init(Cipher.ENCRYPT_MODE, keySpec, iv);// 初始化
+        // 初始化
+        cipher.init(Cipher.ENCRYPT_MODE, keySpec, iv);
         byte[] byteContent = content.getBytes(CHARSET);
         byte[] result = cipher.doFinal(byteContent);
         return Base64.getEncoder().encodeToString(result);
     }
 
     public static String decode(String content, String password) throws Exception{
+        if(content==null){
+            return null;
+        }
         SecretKeySpec keySpec = new SecretKeySpec(password.getBytes(), ALGORITHM);
         IvParameterSpec iv = new IvParameterSpec(password.getBytes(), 0, OFFSET);
         Cipher cipher = Cipher.getInstance(TRANSFORMATION);
-        cipher.init(Cipher.DECRYPT_MODE, keySpec, iv);// 初始化
+        // 初始化
+        cipher.init(Cipher.DECRYPT_MODE, keySpec, iv);
         byte[] byteContent = content.getBytes(CHARSET);
         byte[] result = cipher.doFinal(Base64.getDecoder().decode(byteContent));
         return new String(result);

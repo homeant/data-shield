@@ -27,8 +27,10 @@ public class RSAUtils {
         KeyPairGenerator keyPairGen = KeyPairGenerator.getInstance(ALGORITHM);
         keyPairGen.initialize(keySize);
         KeyPair keyPair = keyPairGen.generateKeyPair();
-        RSAPublicKey publicKey = (RSAPublicKey) keyPair.getPublic();// 公钥
-        RSAPrivateKey privateKey = (RSAPrivateKey) keyPair.getPrivate();// 私钥
+        // 公钥
+        RSAPublicKey publicKey = (RSAPublicKey) keyPair.getPublic();
+        // 私钥
+        RSAPrivateKey privateKey = (RSAPrivateKey) keyPair.getPrivate();
         keyMap.put(PUBLIC_KEY, Base64Utils.encrypt(publicKey.getEncoded()));
         keyMap.put(PRIVATE_KEY, Base64Utils.encrypt(privateKey.getEncoded()));
         return keyMap;
@@ -42,7 +44,11 @@ public class RSAUtils {
      * @throws Exception
      */
     public static String encryptByPublicKey(String content, String key) throws Exception {
-        byte[] keyBytes = Base64Utils.decrypt(key);// 对公钥解密
+        if(content==null){
+            return null;
+        }
+        // 对公钥解密
+        byte[] keyBytes = Base64Utils.decrypt(key);
         // 取得公钥
         X509EncodedKeySpec x509KeySpec = new X509EncodedKeySpec(keyBytes);
         KeyFactory keyFactory = KeyFactory.getInstance(ALGORITHM);
@@ -61,7 +67,11 @@ public class RSAUtils {
      * @throws Exception
      */
     public static String decryptByPublicKey(String content, String key) throws Exception {
-        byte[] keyBytes = Base64Utils.decrypt(key);// 对密钥解密
+        if(content==null){
+            return null;
+        }
+        // 对密钥解密
+        byte[] keyBytes = Base64Utils.decrypt(key);
         // 取得公钥
         X509EncodedKeySpec x509KeySpec = new X509EncodedKeySpec(keyBytes);
         KeyFactory keyFactory = KeyFactory.getInstance(ALGORITHM);
@@ -80,7 +90,11 @@ public class RSAUtils {
      * @throws Exception
      */
     public static byte[] encryptByPrivateKey(String content, String key) throws Exception {
-        byte[] keyBytes = Base64Utils.decrypt(key);// 对密钥解密
+        if(content==null){
+            return null;
+        }
+        // 对密钥解密
+        byte[] keyBytes = Base64Utils.decrypt(key);
         // 取得私钥
         PKCS8EncodedKeySpec pkcs8KeySpec = new PKCS8EncodedKeySpec(keyBytes);
         KeyFactory keyFactory = KeyFactory.getInstance(ALGORITHM);
@@ -99,7 +113,11 @@ public class RSAUtils {
      * @throws Exception
      */
     public static String decryptByPrivateKey(String content, String key) throws Exception {
-        byte[] keyBytes = Base64Utils.decrypt(key);// 对密钥解密
+        if(content==null){
+            return null;
+        }
+        // 对密钥解密
+        byte[] keyBytes = Base64Utils.decrypt(key);
         // 取得私钥
         PKCS8EncodedKeySpec pkcs8KeySpec = new PKCS8EncodedKeySpec(keyBytes);
         KeyFactory keyFactory = KeyFactory.getInstance(ALGORITHM);

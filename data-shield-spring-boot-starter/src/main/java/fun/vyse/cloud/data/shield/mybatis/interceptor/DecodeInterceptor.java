@@ -1,19 +1,24 @@
 package fun.vyse.cloud.data.shield.mybatis.interceptor;
 
 import fun.vyse.cloud.data.shield.annotation.TableField;
+import fun.vyse.cloud.data.shield.asserting.IAssert;
 import fun.vyse.cloud.data.shield.process.IDataProcess;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.executor.resultset.ResultSetHandler;
-import org.apache.ibatis.plugin.Interceptor;
-import org.apache.ibatis.plugin.Intercepts;
-import org.apache.ibatis.plugin.Invocation;
-import org.apache.ibatis.plugin.Signature;
+import org.apache.ibatis.plugin.*;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Type;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 @Intercepts({
         @Signature(
@@ -24,9 +29,11 @@ import java.util.List;
 })
 @Slf4j
 @Data
-public class DecodeInterceptor implements Interceptor {
+public class DecodeInterceptor implements Interceptor, ApplicationContextAware {
 
     private final IDataProcess dataProcess;
+
+    private ApplicationContext applicationContext;
 
     @Override
     public Object intercept(Invocation invocation) throws Throwable {
@@ -40,15 +47,20 @@ public class DecodeInterceptor implements Interceptor {
                     for (int index = 0; index < list.size(); index++) {
                         Object returnItem = list.get(index);
                         Class<?> clazz = returnItem.getClass();
-                        if (clazz.getSuperclass().isInstance(Object.class)) {
-                            Field[] declaredFields = clazz.getDeclaredFields();
-                            for (Field field : declaredFields) {
+                        Type superType = clazz.getGenericSuperclass();
+                        if (superType.getClass().isInstance(Object.class)) {
+                            List<Field> fieldList = new ArrayList<>();
+                            ReflectionUtils.doWithFields(clazz,fieldList::add);
+                            for (Field field : fieldList) {
                                 TableField annotation = field.getAnnotation(TableField.class);
                                 if (annotation != null && annotation.decode()) {
                                     if (field.getGenericType() == String.class) {
                                         field.setAccessible(true);
                                         String value = (String) field.get(returnItem);
-                                        field.set(returnItem, dataProcess.decode(value));
+                                        IAssert instance = getInstance(annotation.assertion());
+                                        if(instance.decode(value,returnItem)){
+                                            ReflectionUtils.setField(field,returnItem,dataProcess.decode(value));
+                                        }
                                     }
                                 }
                             }
@@ -56,10 +68,33 @@ public class DecodeInterceptor implements Interceptor {
                     }
                 }
             } catch (Exception e) {
-                log.error("decode error", e);
+                throw e;
             }
         }
         return returnValue;
+    }
 
+    @Override
+    public void setProperties(Properties properties) {
+
+    }
+
+    @Override
+    public Object plugin(Object target) {
+        return Plugin.wrap(target, this);
+    }
+
+    private  <T> T getInstance(Class<T> clazz) throws IllegalAccessException, InstantiationException {
+        try{
+            T bean = applicationContext.getBean(clazz);
+            return bean;
+        }catch (NoSuchBeanDefinitionException e){
+            return clazz.newInstance();
+        }
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
     }
 }
