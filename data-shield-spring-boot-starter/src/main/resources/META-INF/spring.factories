@@ -1,3 +1,3 @@
 # Spring Boot Auto-configuration
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-  fun.vyse.cloud.data.shield.config.DataShieldAutoConfiguration
+  com.github.homeant.data.shield.config.DataShieldAutoConfiguration
