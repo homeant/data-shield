@@ -5,7 +5,7 @@
 
     <groupId>fun.vyse.cloud</groupId>
     <artifactId>data-shield</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0-BATE</version>
     <packaging>pom</packaging>
     <name>cloud-shield</name>
     <description>云盾</description>
