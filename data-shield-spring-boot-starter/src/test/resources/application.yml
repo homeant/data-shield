@@ -16,7 +16,7 @@ spring:
       connection-timeout: 30000
       connection-test-query: SELECT 1
     type: com.zaxxer.hikari.HikariDataSource
-    url: jdbc:mysql://140.143.66.80:3306/vyse
+    url: jdbc:mysql://data-dev.homeant.com:3306/vyse
     username: vyse
     password: p@ssw0rd
     driver-class-name: com.mysql.cj.jdbc.Driver
