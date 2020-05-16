@@ -63,8 +63,16 @@ public class DataShieldServiceImpl implements DataShieldService, ApplicationCont
                         if (annotation != null && annotation.decode()) {
                             if (type == String.class) {
                                 String strValue = (String) ReflectionUtils.getField(field, value);
-                                IAssert instance = getInstance(annotation.assertion());
-                                if (instance.encrypt(strValue, value)) {
+                                Class<? extends IAssert>[] asserts = annotation.asserts();
+                                boolean result = true;
+                                for (int i = 0; i < asserts.length; i++) {
+                                    IAssert instance = getInstance(asserts[i]);
+                                    if (!instance.encrypt(strValue, value)) {
+                                        result = false;
+                                        break;
+                                    }
+                                }
+                                if (result) {
                                     ReflectionUtils.setField(field, value, this.encrypt(strValue));
                                 }
                             }
@@ -130,8 +138,16 @@ public class DataShieldServiceImpl implements DataShieldService, ApplicationCont
                         if (annotation != null && annotation.decode()) {
                             if (type == String.class) {
                                 String strValue = (String) ReflectionUtils.getField(field, value);
-                                IAssert instance = getInstance(annotation.assertion());
-                                if (instance.decode(strValue, value)) {
+                                Class<? extends IAssert>[] asserts = annotation.asserts();
+                                boolean result = true;
+                                for (int i = 0; i < asserts.length; i++) {
+                                    IAssert instance = getInstance(asserts[i]);
+                                    if (!instance.decode(strValue, value)) {
+                                        result = false;
+                                        break;
+                                    }
+                                }
+                                if (result) {
                                     ReflectionUtils.setField(field, value, this.decode(strValue));
                                 }
                             }

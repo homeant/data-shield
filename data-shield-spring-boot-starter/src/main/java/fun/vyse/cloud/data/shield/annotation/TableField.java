@@ -22,5 +22,5 @@ public @interface TableField {
      */
     boolean decode() default false;
 
-    Class<? extends IAssert> assertion() default DefaultAssert.class;
+    Class<? extends IAssert>[] asserts() default DefaultAssert.class;
 }

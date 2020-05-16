@@ -44,9 +44,17 @@ public class EncryptInterceptor implements Interceptor, ApplicationContextAware 
                 if (annotation != null && annotation.encrypt()) {
                     if (field.getGenericType() == String.class) {
                         field.setAccessible(true);
-                        IAssert instance = getInstance(annotation.assertion());
                         String value = (String) field.get(parameter);
-                        if (instance.encrypt(value, parameter)) {
+                        Class<? extends IAssert>[] asserts = annotation.asserts();
+                        boolean result = true;
+                        for (int i = 0; i < asserts.length; i++) {
+                            IAssert instance = getInstance(asserts[i]);
+                            if(!instance.encrypt(value, parameter)){
+                                result = false;
+                                break;
+                            }
+                        }
+                        if (result) {
                             ReflectionUtils.setField(field, parameter, dataProcess.encrypt(value));
                         }
                     }

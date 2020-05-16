@@ -18,6 +18,7 @@ import java.lang.reflect.Type;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Properties;
 
 @Intercepts({
@@ -46,20 +47,30 @@ public class DecodeInterceptor implements Interceptor, ApplicationContextAware {
                     List<?> list = (ArrayList<?>) returnValue;
                     for (int index = 0; index < list.size(); index++) {
                         Object returnItem = list.get(index);
-                        Class<?> clazz = returnItem.getClass();
-                        Type superType = clazz.getGenericSuperclass();
-                        if (superType.getClass().isInstance(Object.class)) {
-                            List<Field> fieldList = new ArrayList<>();
-                            ReflectionUtils.doWithFields(clazz,fieldList::add);
-                            for (Field field : fieldList) {
-                                TableField annotation = field.getAnnotation(TableField.class);
-                                if (annotation != null && annotation.decode()) {
-                                    if (field.getGenericType() == String.class) {
-                                        field.setAccessible(true);
-                                        String value = (String) field.get(returnItem);
-                                        IAssert instance = getInstance(annotation.assertion());
-                                        if(instance.decode(value,returnItem)){
-                                            ReflectionUtils.setField(field,returnItem,dataProcess.decode(value));
+                        if(returnItem!=null){
+                            Class<?> clazz = returnItem.getClass();
+                            Type superType = clazz.getGenericSuperclass();
+                            if (superType.getClass().isInstance(Object.class)) {
+                                List<Field> fieldList = new ArrayList<>();
+                                ReflectionUtils.doWithFields(clazz,fieldList::add);
+                                for (Field field : fieldList) {
+                                    TableField annotation = field.getAnnotation(TableField.class);
+                                    if (annotation != null && annotation.decode()) {
+                                        if (field.getGenericType() == String.class) {
+                                            field.setAccessible(true);
+                                            String value = (String) field.get(returnItem);
+                                            Class<? extends IAssert>[] asserts = annotation.asserts();
+                                            boolean result = true;
+                                            for (int i = 0; i < asserts.length; i++) {
+                                                IAssert instance = getInstance(asserts[i]);
+                                                if(!instance.decode(value, returnItem)){
+                                                    result = false;
+                                                    break;
+                                                }
+                                            }
+                                            if(result){
+                                                ReflectionUtils.setField(field,returnItem,dataProcess.decode(value));
+                                            }
                                         }
                                     }
                                 }

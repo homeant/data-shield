@@ -33,7 +33,7 @@ encrypt: 修改过程是否需要加密,默认为false
 
 decode: 查询过程是否需要解密,默认为false
 
-assertion: decode为true时，针对某些数据(历史数据)提供断言,默认值DefaultAssert.class(encrypt=true,decode=true)
+asserts: decode为true时，针对某些数据(历史数据)提供断言,默认值DefaultAssert.class(encrypt=true,decode=true)
 
 ```java
 @Data
