@@ -19,7 +19,7 @@
 ```yaml
 app:
   data:
-    security:
+    shield:
       enable: true
       strategy: aes #支持AES/DES模式 
       key: AD42F6697B035B7580E4FEF93BE20BAD
