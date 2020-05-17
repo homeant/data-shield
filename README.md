@@ -7,9 +7,9 @@
 
 ```xml
 <dependency>
-   <groupId>fun.vyse.cloud</groupId>
+   <groupId>com.github.homeant</groupId>
    <artifactId>data-shield</artifactId>
-   <version>${data-shield.version}</version>
+   <version>1.0-BATE</version>
 </dependency>
 ```
 
