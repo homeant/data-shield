@@ -9,9 +9,37 @@
     </parent>
     <groupId>com.github.homeant</groupId>
     <artifactId>data-shield-spring-boot-starter</artifactId>
-    <version>${data-shield.version}</version>
+    <version>1.0-BATE</version>
     <name>data-shield-spring-boot-starter</name>
     <description>data-shield spring-boot</description>
+    <url>https://github.com/homeant/data-shield</url>
+
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <scm>
+        <url>https://github.com/homeant/data-shield</url>
+        <connection>scm:git:git@github.com:homeant/data-shield.git</connection>
+        <developerConnection>scm:git:git@github.com:homeant/data-shield.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
+
+    <developers>
+        <developer>
+            <name>黄天辉</name>
+            <email>junchen1314@foxmail.com</email>
+            <url>https://github.com/homeant</url>
+        </developer>
+    </developers>
+
+    <properties>
+        <skip.spring-boot>true</skip.spring-boot>
+    </properties>
 
     <dependencies>
         <dependency>

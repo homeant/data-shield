@@ -7,9 +7,9 @@
     <artifactId>data-shield</artifactId>
     <version>1.0-BATE</version>
     <packaging>pom</packaging>
-    <name>cloud-shield</name>
+    <name>data-shield</name>
     <description>云盾</description>
-
+    <url>https://github.com/homeant/data-shield</url>
 
     <licenses>
         <license>
@@ -41,7 +41,6 @@
         <!-- 编译时的编码 -->
         <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
 
-        <data-shield.version>${project.version}</data-shield.version>
         <java.version>1.8</java.version>
         <spring-boot.version>2.2.6.RELEASE</spring-boot.version>
         <mysql.version>8.0.16</mysql.version>

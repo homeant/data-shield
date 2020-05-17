@@ -26,9 +26,9 @@ spring:
 
 logging:
   level:
-    fun:
-      vyse:
-        cloud: debug
+    com:
+      github:
+        homeant: debug
 app:
   data:
     shield:
