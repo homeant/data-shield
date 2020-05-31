@@ -45,7 +45,7 @@
         <spring-boot.version>2.2.6.RELEASE</spring-boot.version>
         <mysql.version>8.0.16</mysql.version>
         <mybatis-spring.version>2.1.2</mybatis-spring.version>
-
+        <commons-lang3.version>3.10</commons-lang3.version>
         <testng.version>7.0.0</testng.version>
 
         <!-- 编译时的编码 -->
@@ -76,10 +76,20 @@
                 <version>${mybatis-spring.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>${commons-lang3.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.testng</groupId>
                 <artifactId>testng</artifactId>
                 <version>${testng.version}</version>
                 <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.github.pagehelper</groupId>
+                <artifactId>pagehelper-spring-boot-starter</artifactId>
+                <version>1.2.13</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

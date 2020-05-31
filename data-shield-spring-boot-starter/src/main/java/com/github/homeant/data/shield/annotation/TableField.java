@@ -2,6 +2,7 @@ package com.github.homeant.data.shield.annotation;
 
 import com.github.homeant.data.shield.asserting.DefaultAssert;
 import com.github.homeant.data.shield.asserting.IAssert;
+import com.github.homeant.data.shield.dataMasking.DataMasking;
 
 import java.lang.annotation.*;
 
@@ -21,6 +22,8 @@ public @interface TableField {
      * @return
      */
     boolean decode() default false;
+
+    Class<? extends DataMasking> dataMasking() default DataMasking.class;
 
     Class<? extends IAssert>[] asserts() default DefaultAssert.class;
 }
