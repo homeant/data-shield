@@ -5,11 +5,9 @@
     <parent>
         <groupId>com.github.homeant</groupId>
         <artifactId>data-shield</artifactId>
-        <version>1.0-BATE</version>
+        <version>1.0-RELEASE</version>
     </parent>
-    <groupId>com.github.homeant</groupId>
     <artifactId>data-shield-spring-boot-starter</artifactId>
-    <version>1.0-BATE</version>
     <name>data-shield-spring-boot-starter</name>
     <description>data-shield spring-boot</description>
     <url>https://github.com/homeant/data-shield</url>
