@@ -11,6 +11,10 @@
 
     <artifactId>data-shield-core</artifactId>
 
+    <properties>
+        <skip.spring-boot>true</skip.spring-boot>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.apache.commons</groupId>
