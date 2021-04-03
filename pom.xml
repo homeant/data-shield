@@ -44,14 +44,16 @@
         <java.version>1.8</java.version>
         <spring-boot.version>2.2.6.RELEASE</spring-boot.version>
         <mysql.version>8.0.16</mysql.version>
+        <mybatis.version>3.5.4</mybatis.version>
         <mybatis-spring.version>2.1.2</mybatis-spring.version>
-
+        <commons-lang3.version>3.10</commons-lang3.version>
         <testng.version>7.0.0</testng.version>
 
         <!-- 编译时的编码 -->
         <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
+
 
         <skip.spring-boot>false</skip.spring-boot>
     </properties>
@@ -76,10 +78,25 @@
                 <version>${mybatis-spring.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>${commons-lang3.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mybatis</groupId>
+                <artifactId>mybatis</artifactId>
+                <version>${mybatis.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.testng</groupId>
                 <artifactId>testng</artifactId>
                 <version>${testng.version}</version>
                 <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.github.pagehelper</groupId>
+                <artifactId>pagehelper-spring-boot-starter</artifactId>
+                <version>1.2.13</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -101,6 +118,17 @@
                     <configuration>
                         <source>1.8</source>
                         <target>1.8</target>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-release-plugin</artifactId>
+                    <configuration>
+                        <tagBase>https://github.com/homeant/data-shield.git</tagBase>
+                        <connectionUrl>https://github.com/homeant/data-shield.git</connectionUrl>
+                        <useReleaseProfile>false</useReleaseProfile>
+                        <autoVersionSubmodules>true</autoVersionSubmodules>
+                        <preparationGoals>clean deploy</preparationGoals>
                     </configuration>
                 </plugin>
                 <plugin>
@@ -172,6 +200,10 @@
                 <artifactId>maven-javadoc-plugin</artifactId>
             </plugin>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+            </plugin>
+            <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <executions>
@@ -224,5 +256,6 @@
 
     <modules>
         <module>data-shield-spring-boot-starter</module>
+        <module>data-shield-core</module>
     </modules>
 </project>
