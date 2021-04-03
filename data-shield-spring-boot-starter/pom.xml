@@ -4,7 +4,7 @@
     <parent>
         <groupId>com.github.homeant</groupId>
         <artifactId>data-shield</artifactId>
-        <version>1.1-SNAPSHOT</version>
+        <version>1.2-SNAPSHOT</version>
     </parent>
     <artifactId>data-shield-spring-boot-starter</artifactId>
     <name>data-shield-spring-boot-starter</name>
