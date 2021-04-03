@@ -249,5 +249,6 @@
 
     <modules>
         <module>data-shield-spring-boot-starter</module>
+        <module>data-shield-core</module>
     </modules>
 </project>
