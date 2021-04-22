@@ -44,7 +44,7 @@
         <java.version>1.8</java.version>
         <spring-boot.version>2.2.6.RELEASE</spring-boot.version>
         <mysql.version>8.0.16</mysql.version>
-        <mybatis.version>3.5.4</mybatis.version>
+        <mybatis.version>3.5.6</mybatis.version>
         <mybatis-spring.version>2.1.2</mybatis-spring.version>
         <commons-lang3.version>3.10</commons-lang3.version>
         <testng.version>7.0.0</testng.version>
