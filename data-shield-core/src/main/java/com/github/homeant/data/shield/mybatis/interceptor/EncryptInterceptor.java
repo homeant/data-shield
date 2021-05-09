@@ -49,7 +49,7 @@ public class EncryptInterceptor implements Interceptor, ApplicationContextAware 
         MappedStatement ms = (MappedStatement) args[0];
         Object source = args[1];
         if (source != null) {
-            Class<?> clazz = ms.getParameterMap().getType();
+            Class<?> clazz = getClass(ms, source);
             source = deepClone(source, clazz);
             args[1] = source;
             List<Field> fieldList = new ArrayList<>();
@@ -76,6 +76,11 @@ public class EncryptInterceptor implements Interceptor, ApplicationContextAware 
             boundSql = (BoundSql) args[5];
         }
         return executor.query(ms, source, rowBounds, resultHandler, cacheKey, boundSql);
+    }
+
+    private Class<?> getClass(MappedStatement ms, Object source) {
+        Class<?> type = ms.getParameterMap().getType();
+        return type != null ? type : source.getClass();
     }
 
     @SuppressWarnings("all")

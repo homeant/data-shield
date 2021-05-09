@@ -96,6 +96,16 @@
                 <artifactId>pagehelper-spring-boot-starter</artifactId>
                 <version>1.2.13</version>
             </dependency>
+            <dependency>
+                <groupId>ma.glasnost.orika</groupId>
+                <artifactId>orika-core</artifactId>
+                <version>1.5.4</version>
+            </dependency>
+            <dependency>
+                <groupId>cglib</groupId>
+                <artifactId>cglib</artifactId>
+                <version>3.3.0</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -261,5 +271,6 @@
     <modules>
         <module>data-shield-spring-boot-starter</module>
         <module>data-shield-core</module>
+        <module>data-shield-mapper</module>
     </modules>
 </project>
