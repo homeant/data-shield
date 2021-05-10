@@ -16,9 +16,9 @@ spring:
       connection-timeout: 30000
       connection-test-query: SELECT 1
     type: com.zaxxer.hikari.HikariDataSource
-    url: jdbc:mysql://rm-2zek3roph080rt97e5o.mysql.rds.aliyuncs.com:3306/dev_test
+    url: jdbc:mysql://rm-2zep95j486z1ra75auo.mysql.rds.aliyuncs.com:3306/dev_test
     username: dev_test
-    password: Test123456
+    password: test_123456
     driver-class-name: com.mysql.cj.jdbc.Driver
 #mybatis:
 #  type-handlers-package: fun.vyse.cloud.shield.mybatis

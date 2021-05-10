@@ -1,5 +1,6 @@
 package com.github.homeant.data.shield;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.homeant.AbstractApplicationTest;
 import com.github.homeant.data.shield.domain.User;
@@ -23,6 +24,7 @@ import org.springframework.util.StopWatch;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
@@ -111,10 +113,18 @@ public class DataTest extends AbstractApplicationTest {
             UserDto userDto = orikaBeanMapper.map(user, UserDto.class);
             stopWatch.stop();
             stopWatch.start("userInfo");
-            log.info("userInfo:{}", userDto.getUserInfo());
+            log.info("getUserInfo() 会去查询数据 | {}", userDto.getUserInfo());
             stopWatch.stop();
-            log.info("dto:{}",userDto);
-            log.info("watch:{}",stopWatch);
+            log.info("二次调用 getUserInfo(),不进行lazy load | {}", userDto.getUserInfo());
+            userDto.setBookList(new ArrayList<>());
+            log.info("setBookList(X),会删除lazy标记 | {}", userDto.getBookList());
+            log.info("toString | {}", userDto);
+            try {
+                log.info("json打印对象,看是否还会触发lazy | {}", new ObjectMapper().writeValueAsString(userDto));
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+            }
+            log.info("watch:{}", stopWatch);
         });
 
     }

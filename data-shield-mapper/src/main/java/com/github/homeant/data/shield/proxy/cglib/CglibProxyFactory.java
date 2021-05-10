@@ -2,13 +2,19 @@ package com.github.homeant.data.shield.proxy.cglib;
 
 import com.github.homeant.data.shield.annotation.Mapping;
 import com.github.homeant.data.shield.proxy.ProxyFactory;
+import com.github.homeant.data.shield.proxy.ResultMapping;
 import lombok.extern.slf4j.Slf4j;
+import ma.glasnost.orika.MapperFacade;
 import ma.glasnost.orika.MapperFactory;
 import ma.glasnost.orika.metadata.ClassMapBuilder;
 import net.sf.cglib.proxy.Enhancer;
 import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
 import org.apache.ibatis.executor.loader.WriteReplaceInterface;
+import org.apache.ibatis.reflection.DefaultReflectorFactory;
+import org.apache.ibatis.reflection.Reflector;
+import org.apache.ibatis.reflection.ReflectorFactory;
+import org.apache.ibatis.reflection.invoker.Invoker;
 import org.apache.ibatis.reflection.property.PropertyCopier;
 import org.apache.ibatis.reflection.property.PropertyNamer;
 
@@ -18,10 +24,6 @@ import java.util.*;
 
 @Slf4j
 public class CglibProxyFactory implements ProxyFactory {
-
-    private static final String FINALIZE_METHOD = "finalize";
-    private static final String WRITE_REPLACE_METHOD = "writeReplace";
-
 
     @Override
     public Object createProxy(Object target, Object source, MapperFactory mapperFactory) {
@@ -36,10 +38,28 @@ public class CglibProxyFactory implements ProxyFactory {
 
         private final MapperFactory mapperFactory;
 
+        private final MapperFacade mapperFacade;
+
+        private Map<String, ResultMapping> cacheMap = new HashMap<>();
+
+        private ReflectorFactory reflectorFactory = new DefaultReflectorFactory();
+
         public EnhancedBeanProxyImpl(Object source, Class<?> type, MapperFactory mapperFactory) {
             this.source = source;
             this.type = type;
             this.mapperFactory = mapperFactory;
+            this.mapperFacade = mapperFactory.getMapperFacade();
+            for (Field field : type.getDeclaredFields()) {
+                Mapping mapping = field.getAnnotation(Mapping.class);
+                if (mapping != null) {
+                    ResultMapping resultMapping = new ResultMapping();
+                    resultMapping.setField(field);
+                    resultMapping.setFormat(mapping.format());
+                    resultMapping.setLazy(mapping.lazy());
+                    resultMapping.setValue(mapping.value());
+                    cacheMap.put(field.getName(), resultMapping);
+                }
+            }
         }
 
         public static Object createProxy(Object target, Object source, MapperFactory mapperFactory) {
@@ -49,16 +69,6 @@ public class CglibProxyFactory implements ProxyFactory {
             EnhancedBeanProxyImpl callback = new EnhancedBeanProxyImpl(source, type, mapperFactory);
             enhancer.setCallback(callback);
             enhancer.setSuperclass(type);
-            try {
-                //获取目标类型的 writeReplace 方法，如果没有，异常中代理类设置enhancer.setInterfaces(new Class[]{WriteReplaceInterface.class});
-                type.getDeclaredMethod(CglibProxyFactory.WRITE_REPLACE_METHOD);
-                // ObjectOutputStream will call writeReplace of objects returned by writeReplace
-                log.debug(WRITE_REPLACE_METHOD + " method was found on bean " + type + ", make sure it returns this");
-            } catch (NoSuchMethodException e) {
-                enhancer.setInterfaces(new Class[]{WriteReplaceInterface.class});
-            } catch (SecurityException e) {
-                // nothing to do here
-            }
             Object result = enhancer.create();
             PropertyCopier.copyBeanProperties(type, target, result);
             return result;
@@ -67,74 +77,49 @@ public class CglibProxyFactory implements ProxyFactory {
         @Override
         public Object intercept(Object object, Method method, Object[] args, MethodProxy methodProxy) throws Throwable {
             String methodName = method.getName();
-            log.info("proxy class {}.{}", object.getClass().getSimpleName(), methodName);
-            if (!FINALIZE_METHOD.equals(methodName)) {
-                if (PropertyNamer.isProperty(methodName)) {
-                    String property = PropertyNamer.methodToProperty(methodName);
-                    Field targetField = type.getDeclaredField(property);
-                    Mapping annotation = targetField.getAnnotation(Mapping.class);
-                    if (annotation != null && annotation.lazy()) {
-                        Class<?> targetType = targetField.getType();
-                        if (targetType == List.class || targetType == Set.class) {
-                            Type genericType = targetField.getGenericType();
+            if (PropertyNamer.isProperty(methodName)) {
+                String property = PropertyNamer.methodToProperty(methodName);
+                if (cacheMap.containsKey(property)) {
+                    ResultMapping resultMapping = cacheMap.get(property);
+                    if(PropertyNamer.isSetter(methodName)){
+                        resultMapping.setLazy(false);
+                    }
+                    if (resultMapping.isLazy()) {
+                        log.debug("lazy handler {}", methodName);
+                        Field targetFile = type.getDeclaredField(property);
+                        Class<?> targetFileType = targetFile.getType();
+                        String sourceFileProperty = resultMapping.getValue();
+                        if ("".equals(sourceFileProperty)) {
+                            sourceFileProperty = property;
+                        }
+                        Reflector reflector = reflectorFactory.findForClass(source.getClass());
+                        Invoker invoker = reflector.getGetInvoker(sourceFileProperty);
+                        Object sourceFileResult = invoker.invoke(source, null);
+                        if (targetFileType == List.class) {
+                            Type genericType = targetFile.getGenericType();
                             if (genericType != null && genericType instanceof ParameterizedType) {
                                 Type actualType = ((ParameterizedType) genericType).getActualTypeArguments()[0];
-                                targetType = Class.forName(actualType.getTypeName());
+                                targetFileType = Class.forName(actualType.getTypeName());
                             }
-                        }
-                        Class parentSourceType = source.getClass();
-                        Class sourceType = null;
-                        try {
-                            Class.forName(source.getClass().getSimpleName());
-                        } catch (ClassNotFoundException e) {
-                            parentSourceType = source.getClass().getSuperclass();
-                        }
-                        Field sourceFile = null;
-                        if (annotation.value() != null && !"".equals(annotation.value())) {
-                            sourceType = getType(parentSourceType, annotation.value());
+                            List list = (List) sourceFileResult;
+                            if (list != null && list.size() > 0) {
+                                Reflector listReflector = reflectorFactory.findForClass(list.get(0).getClass());
+                                mappingRegister(listReflector.getType(), targetFileType, mapperFactory);
+                                List resultList = new ArrayList();
+                                for (Object o : list) {
+                                    resultList.add(createProxy(o, sourceFileResult, mapperFactory));
+                                }
+                                targetFile.setAccessible(true);
+                                targetFile.set(object, resultList);
+                            }
                         } else {
-                            sourceType = getType(parentSourceType, property);
+                            Class<?> sourceFileType = reflector.hasGetter("handler") ? reflector.getType().getSuperclass() : reflector.getType();
+                            mappingRegister(sourceFileType, targetFileType, mapperFactory);
+                            Object result = mapperFacade.map(sourceFileResult, targetFileType);
+                            targetFile.setAccessible(true);
+                            targetFile.set(object, createProxy(result, sourceFileResult, mapperFactory));
                         }
-                        log.info("sourceType:{}", sourceType);
-                        ClassMapBuilder<?, ?> classMapBuilder = mapperFactory.classMap(sourceType, targetType);
-                        for (Field field : targetType.getDeclaredFields()) {
-                            Mapping mapping = field.getAnnotation(Mapping.class);
-                            if (mapping != null) {
-                                String fieldName = field.getName();
-                                String value = mapping.value();
-                                if (value != null && !"".equals(value)) {
-                                    classMapBuilder.field(value, fieldName);
-                                    fieldName = value;
-                                }
-                                if (mapping.lazy()) {
-                                    classMapBuilder.exclude(fieldName);
-                                }
-
-                            }
-                        }
-                        String value = annotation.value();
-                        if (value != null && !"".equals(value)) {
-                            methodName = getMethodName(value);
-                        }
-                        classMapBuilder.byDefault().register();
-                        Method getMethod = parentSourceType.getMethod(methodName);
-                        Object sourceResult = getMethod.invoke(source, null);
-                        if (sourceResult != null) {
-                            targetField.setAccessible(true);
-                            if (sourceResult instanceof List) {
-                                Iterator<?> iterator = ((List<?>) sourceResult).iterator();
-                                List list = new ArrayList();
-                                while (iterator.hasNext()) {
-                                    Object next = iterator.next();
-                                    Object map = mapperFactory.getMapperFacade().map(next, targetType);
-                                    list.add(createProxy(map, next, mapperFactory));
-                                }
-                                targetField.set(object, list);
-                            } else {
-                                Object result = mapperFactory.getMapperFacade().map(sourceResult, targetType);
-                                targetField.set(object, createProxy(result, sourceResult, mapperFactory));
-                            }
-                        }
+                        resultMapping.setLazy(false);
                     }
                 }
             }
@@ -142,17 +127,18 @@ public class CglibProxyFactory implements ProxyFactory {
         }
     }
 
-    private static Class getType(Class clazz, String property) {
-        try {
-            Field field = clazz.getDeclaredField(property);
-            return field.getType();
-        } catch (NoSuchFieldException e) {
-
+    private static void mappingRegister(Class<?> sourceFileType, Class<?> targetFileType, MapperFactory mapperFactory) {
+        Field[] fields = targetFileType.getDeclaredFields();
+        ClassMapBuilder<?, ?> classMapBuilder = mapperFactory.classMap(sourceFileType, targetFileType);
+        for (Field field : fields) {
+            Mapping annotation = field.getAnnotation(Mapping.class);
+            if (annotation != null) {
+                String value = annotation.value();
+                if (value != null && !"".equals(value)) {
+                    classMapBuilder.field(value, field.getName());
+                }
+            }
         }
-        return null;
-    }
-
-    private static String getMethodName(String field) {
-        return "get" + field.substring(0, 1).toUpperCase() + field.substring(1);
+        classMapBuilder.byDefault().register();
     }
 }
