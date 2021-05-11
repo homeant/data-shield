@@ -26,6 +26,7 @@ spring:
 mybatis:
   configuration:
     aggressive-lazy-loading: false
+    map-underscore-to-camel-case: true
 
 logging:
   level:

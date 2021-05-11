@@ -9,4 +9,6 @@ public class UserInfo {
     private Integer id;
 
     private Date birthday;
+
+    private UserInfoExt userInfoExt;
 }

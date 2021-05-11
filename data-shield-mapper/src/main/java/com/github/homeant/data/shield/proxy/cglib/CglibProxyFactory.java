@@ -6,11 +6,13 @@ import com.github.homeant.data.shield.proxy.ResultMapping;
 import lombok.extern.slf4j.Slf4j;
 import ma.glasnost.orika.MapperFacade;
 import ma.glasnost.orika.MapperFactory;
+import ma.glasnost.orika.impl.generator.JavassistCompilerStrategy;
 import ma.glasnost.orika.metadata.ClassMapBuilder;
 import net.sf.cglib.proxy.Enhancer;
 import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
 import org.apache.ibatis.executor.loader.WriteReplaceInterface;
+import org.apache.ibatis.executor.loader.javassist.JavassistProxyFactory;
 import org.apache.ibatis.reflection.DefaultReflectorFactory;
 import org.apache.ibatis.reflection.Reflector;
 import org.apache.ibatis.reflection.ReflectorFactory;
@@ -34,7 +36,9 @@ public class CglibProxyFactory implements ProxyFactory {
 
         private final Object source;
 
-        private final Class<?> type;
+        private final Class<?> targetClass;
+
+        private final Class<?> sourceClass;
 
         private final MapperFactory mapperFactory;
 
@@ -46,7 +50,8 @@ public class CglibProxyFactory implements ProxyFactory {
 
         public EnhancedBeanProxyImpl(Object source, Class<?> type, MapperFactory mapperFactory) {
             this.source = source;
-            this.type = type;
+            this.targetClass = type;
+            this.sourceClass = source.getClass();
             this.mapperFactory = mapperFactory;
             this.mapperFacade = mapperFactory.getMapperFacade();
             for (Field field : type.getDeclaredFields()) {
@@ -86,7 +91,7 @@ public class CglibProxyFactory implements ProxyFactory {
                     }
                     if (resultMapping.isLazy()) {
                         log.debug("lazy handler {}", methodName);
-                        Field targetFile = type.getDeclaredField(property);
+                        Field targetFile = targetClass.getDeclaredField(property);
                         Class<?> targetFileType = targetFile.getType();
                         String sourceFileProperty = resultMapping.getValue();
                         if ("".equals(sourceFileProperty)) {
@@ -104,7 +109,7 @@ public class CglibProxyFactory implements ProxyFactory {
                             List list = (List) sourceFileResult;
                             if (list != null && list.size() > 0) {
                                 Reflector listReflector = reflectorFactory.findForClass(list.get(0).getClass());
-                                mappingRegister(listReflector.getType(), targetFileType, mapperFactory);
+                                mappingRegister(listReflector.getType(), targetClass, mapperFactory);
                                 List resultList = new ArrayList();
                                 for (Object o : list) {
                                     resultList.add(createProxy(o, sourceFileResult, mapperFactory));
@@ -114,12 +119,14 @@ public class CglibProxyFactory implements ProxyFactory {
                             }
                         } else {
                             Class<?> sourceFileType = reflector.hasGetter("handler") ? reflector.getType().getSuperclass() : reflector.getType();
-                            mappingRegister(sourceFileType, targetFileType, mapperFactory);
+                            mappingRegister(sourceFileType, targetClass, mapperFactory);
                             Object result = mapperFacade.map(sourceFileResult, targetFileType);
                             targetFile.setAccessible(true);
                             targetFile.set(object, createProxy(result, sourceFileResult, mapperFactory));
                         }
                         resultMapping.setLazy(false);
+                    }else{
+                        mappingRegister(sourceClass, targetClass, mapperFactory);
                     }
                 }
             }
@@ -127,9 +134,9 @@ public class CglibProxyFactory implements ProxyFactory {
         }
     }
 
-    private static void mappingRegister(Class<?> sourceFileType, Class<?> targetFileType, MapperFactory mapperFactory) {
-        Field[] fields = targetFileType.getDeclaredFields();
-        ClassMapBuilder<?, ?> classMapBuilder = mapperFactory.classMap(sourceFileType, targetFileType);
+    private static void mappingRegister(Class<?> sourceClass, Class<?> targetClass, MapperFactory mapperFactory) {
+        Field[] fields = targetClass.getDeclaredFields();
+        ClassMapBuilder<?, ?> classMapBuilder = mapperFactory.classMap(sourceClass, targetClass);
         for (Field field : fields) {
             Mapping annotation = field.getAnnotation(Mapping.class);
             if (annotation != null) {
