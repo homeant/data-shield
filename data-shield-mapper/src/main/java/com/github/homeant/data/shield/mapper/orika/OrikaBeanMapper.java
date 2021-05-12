@@ -28,24 +28,7 @@ public class OrikaBeanMapper implements BeanMapper {
         } catch (ClassNotFoundException e) {
             sourceType = source.getClass().getSuperclass();
         }
-        Field[] fields = targetClazz.getDeclaredFields();
-        ClassMapBuilder<?, T> classMapBuilder = mapperFactory.classMap(sourceType, targetClazz);
-        for (Field field : fields) {
-            Mapping mapping = field.getAnnotation(Mapping.class);
-            if (mapping != null) {
-                String fieldName = field.getName();
-                String value = mapping.value();
-                if (value != null && !"".equals(value)) {
-                    fieldName = value;
-                }
-                if (mapping.lazy()) {
-                    classMapBuilder.exclude(fieldName);
-                }
-            }
-        }
-        classMapBuilder.byDefault().register();
-        Object result = mapperFactory.getMapperFacade(sourceType, targetClazz).map(source);
-        return (T) proxyFactory.createProxy(result, source, mapperFactory);
+        return (T) proxyFactory.createProxy(source, sourceType, targetClazz);
     }
 
     public ProxyFactory getProxyFactory() {

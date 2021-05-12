@@ -14,6 +14,6 @@ public class UserDto {
     @Mapping(lazy = true)
     private UserInfoDto userInfo;
 
-    @Mapping(lazy = true)
-    private List<BookDto> bookList;
+    @Mapping(lazy = true,value = "bookList")
+    private List<BookDto> bookList1;
 }

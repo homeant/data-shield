@@ -2,14 +2,13 @@ package com.github.homeant.data.shield.proxy;
 
 import ma.glasnost.orika.MapperFactory;
 
+import java.util.List;
+
 public interface ProxyFactory {
 
-    /**
-     *
-     * @param target 顶级对象
-     * @param source mybatis返回的延迟对象
-     * @param mapperFactory
-     * @return
-     */
-    Object createProxy(Object target,Object source, MapperFactory mapperFactory);
+    <S, T> List<T> createProxy(List<S> sourceList, Class<S> sourceClass, Class<T> targetClass);
+
+    <S, T> T createProxy(S source, Class<S> sourceClass, Class<T> targetClass);
+
+    <S, T> T createProxy(S source, Class<S> sourceClass, Class<T> targetClass, MapperFactory mapperFactory);
 }

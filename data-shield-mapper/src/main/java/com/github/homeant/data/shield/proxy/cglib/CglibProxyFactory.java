@@ -4,23 +4,17 @@ import com.github.homeant.data.shield.annotation.Mapping;
 import com.github.homeant.data.shield.proxy.ProxyFactory;
 import com.github.homeant.data.shield.proxy.ResultMapping;
 import lombok.extern.slf4j.Slf4j;
-import ma.glasnost.orika.MapperFacade;
+
 import ma.glasnost.orika.MapperFactory;
-import ma.glasnost.orika.impl.generator.JavassistCompilerStrategy;
+import ma.glasnost.orika.impl.DefaultMapperFactory;
+
 import ma.glasnost.orika.metadata.ClassMapBuilder;
+import net.sf.cglib.proxy.Callback;
 import net.sf.cglib.proxy.Enhancer;
 import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
-import org.apache.ibatis.executor.loader.WriteReplaceInterface;
-import org.apache.ibatis.executor.loader.javassist.JavassistProxyFactory;
-import org.apache.ibatis.reflection.DefaultReflectorFactory;
-import org.apache.ibatis.reflection.Reflector;
-import org.apache.ibatis.reflection.ReflectorFactory;
-import org.apache.ibatis.reflection.invoker.Invoker;
-import org.apache.ibatis.reflection.property.PropertyCopier;
-import org.apache.ibatis.reflection.property.PropertyNamer;
+import org.springframework.util.ReflectionUtils;
 
-import java.io.File;
 import java.lang.reflect.*;
 import java.util.*;
 
@@ -28,124 +22,180 @@ import java.util.*;
 public class CglibProxyFactory implements ProxyFactory {
 
     @Override
-    public Object createProxy(Object target, Object source, MapperFactory mapperFactory) {
-        return EnhancedBeanProxyImpl.createProxy(target, source, mapperFactory);
+    public <S, T> List<T> createProxy(List<S> sourceList, Class<S> sourceClass, Class<T> targetClass) {
+        if (sourceList == null || sourceList.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<T> list = new ArrayList<>(sourceList.size());
+        for (S source : sourceList) {
+            list.add(this.createProxy(source, sourceClass, targetClass, new DefaultMapperFactory.Builder().build()));
+        }
+        return list;
     }
 
-    static class EnhancedBeanProxyImpl implements MethodInterceptor {
+    @Override
+    public <S, T> T createProxy(S source, Class<S> sourceClass, Class<T> targetClass) {
+        return createProxy(source, sourceClass, targetClass, new DefaultMapperFactory.Builder().build());
+    }
 
-        private final Object source;
+    @Override
+    @SuppressWarnings("all")
+    public <S, T> T createProxy(S source, Class<S> sourceClass, Class<T> targetClass, MapperFactory mapperFactory) {
+        if (source == null) {
+            return null;
+        }
+        Enhancer enhancer = new Enhancer();
+        enhancer.setSuperclass(targetClass);
+        MethodInterceptor callback = new EnhancedBeanProxy(source, sourceClass, targetClass, mapperFactory);
+        enhancer.setCallback((Callback) callback);
+        Object result = enhancer.create();
+        T sourceResult = mapperFactory.getMapperFacade().map(source, targetClass);
+        copyBeanProperties(targetClass, sourceResult, result);
+        return (T) result;
+    }
 
-        private final Class<?> targetClass;
+    public static void copyBeanProperties(Class<?> type, Object sourceBean, Object destinationBean) {
+        for (Class parent = type; parent != null; parent = parent.getSuperclass()) {
+            Field[] fields = parent.getDeclaredFields();
+            Field[] var5 = fields;
+            int var6 = fields.length;
 
-        private final Class<?> sourceClass;
-
-        private final MapperFactory mapperFactory;
-
-        private final MapperFacade mapperFacade;
-
-        private Map<String, ResultMapping> cacheMap = new HashMap<>();
-
-        private ReflectorFactory reflectorFactory = new DefaultReflectorFactory();
-
-        public EnhancedBeanProxyImpl(Object source, Class<?> type, MapperFactory mapperFactory) {
-            this.source = source;
-            this.targetClass = type;
-            this.sourceClass = source.getClass();
-            this.mapperFactory = mapperFactory;
-            this.mapperFacade = mapperFactory.getMapperFacade();
-            for (Field field : type.getDeclaredFields()) {
-                Mapping mapping = field.getAnnotation(Mapping.class);
-                if (mapping != null) {
-                    ResultMapping resultMapping = new ResultMapping();
-                    resultMapping.setField(field);
-                    resultMapping.setFormat(mapping.format());
-                    resultMapping.setLazy(mapping.lazy());
-                    resultMapping.setValue(mapping.value());
-                    cacheMap.put(field.getName(), resultMapping);
+            for (int var7 = 0; var7 < var6; ++var7) {
+                Field field = var5[var7];
+                try {
+                    try {
+                        field.set(destinationBean, field.get(sourceBean));
+                    } catch (IllegalAccessException var10) {
+                        field.setAccessible(true);
+                        field.set(destinationBean, field.get(sourceBean));
+                    }
+                } catch (Exception var11) {
                 }
             }
         }
+    }
 
-        public static Object createProxy(Object target, Object source, MapperFactory mapperFactory) {
-            log.info("create proxy:{}|{}", target.getClass().getSimpleName(), source.getClass().getSimpleName());
-            Class<?> type = target.getClass();
-            Enhancer enhancer = new Enhancer();
-            EnhancedBeanProxyImpl callback = new EnhancedBeanProxyImpl(source, type, mapperFactory);
-            enhancer.setCallback(callback);
-            enhancer.setSuperclass(type);
-            Object result = enhancer.create();
-            PropertyCopier.copyBeanProperties(type, target, result);
-            return result;
+
+
+    static class EnhancedBeanProxy<S, T> implements MethodInterceptor {
+
+        private final Class<S> sourceType;
+
+        private final Class<T> targetType;
+
+        private final Object source;
+
+        private final MapperFactory mapperFactory;
+
+        private final Map<String, ResultMapping> mappingMap = new HashMap<>();
+
+        private final ProxyFactory proxyFactory = new CglibProxyFactory();
+
+        public EnhancedBeanProxy(Object source, Class<S> sourceType, Class<T> targetType, MapperFactory mapperFactory) {
+            this.sourceType = sourceType;
+            this.targetType = targetType;
+            this.source = source;
+            this.mapperFactory = mapperFactory;
+            ClassMapBuilder<?, ?> classMapBuilder = mapperFactory.classMap(sourceType, targetType);
+            ReflectionUtils.doWithFields(targetType, field -> {
+                Mapping mapping = field.getAnnotation(Mapping.class);
+                if (mapping != null) {
+                    String actualMapping = field.getName();
+                    ResultMapping resultMapping = new ResultMapping();
+                    resultMapping.setField(field);
+                    resultMapping.setLazy(mapping.lazy());
+                    resultMapping.setActualMapping(field.getName());
+                    if (isNotBlank(mapping.value())) {
+                        actualMapping = mapping.value();
+                    }
+                    resultMapping.setActualMapping(actualMapping);
+                    Field sourceField = ReflectionUtils.findField(sourceType, actualMapping);
+                    if (mapping.lazy() && sourceField != null) {
+                        classMapBuilder.exclude(actualMapping);
+                    } else if (isNotBlank(mapping.value()) && sourceField != null) {
+                        classMapBuilder.field(actualMapping, field.getName());
+                    }
+                    mappingMap.put(field.getName(), resultMapping);
+                }
+            });
+            classMapBuilder.byDefault().register();
+
         }
 
+
         @Override
+        @SuppressWarnings("all")
         public Object intercept(Object object, Method method, Object[] args, MethodProxy methodProxy) throws Throwable {
             String methodName = method.getName();
-            if (PropertyNamer.isProperty(methodName)) {
-                String property = PropertyNamer.methodToProperty(methodName);
-                if (cacheMap.containsKey(property)) {
-                    ResultMapping resultMapping = cacheMap.get(property);
-                    if(PropertyNamer.isSetter(methodName)){
-                        resultMapping.setLazy(false);
-                    }
-                    if (resultMapping.isLazy()) {
-                        log.debug("lazy handler {}", methodName);
-                        Field targetFile = targetClass.getDeclaredField(property);
-                        Class<?> targetFileType = targetFile.getType();
-                        String sourceFileProperty = resultMapping.getValue();
-                        if ("".equals(sourceFileProperty)) {
-                            sourceFileProperty = property;
-                        }
-                        Reflector reflector = reflectorFactory.findForClass(source.getClass());
-                        Invoker invoker = reflector.getGetInvoker(sourceFileProperty);
-                        Object sourceFileResult = invoker.invoke(source, null);
-                        if (targetFileType == List.class) {
-                            Type genericType = targetFile.getGenericType();
-                            if (genericType != null && genericType instanceof ParameterizedType) {
-                                Type actualType = ((ParameterizedType) genericType).getActualTypeArguments()[0];
-                                targetFileType = Class.forName(actualType.getTypeName());
+            String property = methodToProperty(methodName);
+            if (isGetMethod(methodName) && mappingMap.containsKey(property)) {
+                ResultMapping resultMapping = mappingMap.get(property);
+                if (resultMapping.isLazy()) {
+                    Field sourceField = ReflectionUtils.findField(sourceType, resultMapping.getActualMapping());
+                    log.info("merthodName:{}", propertyToGetMethod(resultMapping.getActualMapping()));
+                    Method sourceMethod = ReflectionUtils.findMethod(sourceType, propertyToGetMethod(resultMapping.getActualMapping()));
+                    Field field = ReflectionUtils.findField(targetType, property);
+                    if (field != null && sourceField != null && sourceMethod != null) {
+                        Object result = ReflectionUtils.invokeMethod(sourceMethod, source);
+                        ReflectionUtils.makeAccessible(field);
+                        if (sourceField.getType() == List.class && field.getType() == List.class) {
+                            List resultList = (List) result;
+                            List list = new ArrayList(((List) result).size());
+                            Class<?> sourceArgsType = getArgumentType(sourceField);
+                            Class<?> targetType = getArgumentType(field);
+                            for (Object o : resultList) {
+                                list.add(proxyFactory.createProxy((S) o, (Class<S>) sourceArgsType, (Class<T>) targetType, mapperFactory));
                             }
-                            List list = (List) sourceFileResult;
-                            if (list != null && list.size() > 0) {
-                                Reflector listReflector = reflectorFactory.findForClass(list.get(0).getClass());
-                                mappingRegister(listReflector.getType(), targetClass, mapperFactory);
-                                List resultList = new ArrayList();
-                                for (Object o : list) {
-                                    resultList.add(createProxy(o, sourceFileResult, mapperFactory));
-                                }
-                                targetFile.setAccessible(true);
-                                targetFile.set(object, resultList);
-                            }
+                            ReflectionUtils.setField(field, object, list);
                         } else {
-                            Class<?> sourceFileType = reflector.hasGetter("handler") ? reflector.getType().getSuperclass() : reflector.getType();
-                            mappingRegister(sourceFileType, targetClass, mapperFactory);
-                            Object result = mapperFacade.map(sourceFileResult, targetFileType);
-                            targetFile.setAccessible(true);
-                            targetFile.set(object, createProxy(result, sourceFileResult, mapperFactory));
+                            ReflectionUtils.setField(field, object, proxyFactory.createProxy((S) result, (Class<S>) sourceField.getType(), (Class<T>) field.getType(), mapperFactory));
                         }
-                        resultMapping.setLazy(false);
-                    }else{
-                        mappingRegister(sourceClass, targetClass, mapperFactory);
                     }
+                    resultMapping.setLazy(false);
+                }
+            }
+            if (isSetMethod(methodName) && mappingMap.containsKey(property)) {
+                if (mappingMap.get(property).isLazy()) {
+                    mappingMap.get(property).setLazy(false);
                 }
             }
             return methodProxy.invokeSuper(object, args);
         }
-    }
 
-    private static void mappingRegister(Class<?> sourceClass, Class<?> targetClass, MapperFactory mapperFactory) {
-        Field[] fields = targetClass.getDeclaredFields();
-        ClassMapBuilder<?, ?> classMapBuilder = mapperFactory.classMap(sourceClass, targetClass);
-        for (Field field : fields) {
-            Mapping annotation = field.getAnnotation(Mapping.class);
-            if (annotation != null) {
-                String value = annotation.value();
-                if (value != null && !"".equals(value)) {
-                    classMapBuilder.field(value, field.getName());
-                }
+        private String methodToProperty(String name) {
+            if (isGetMethod(name) || isSetMethod(name)) {
+                name = name.substring(3);
             }
+            if (name.length() == 1 || name.length() > 1 && !Character.isUpperCase(name.charAt(1))) {
+                name = name.substring(0, 1).toLowerCase(Locale.ENGLISH) + name.substring(1);
+            }
+            return name;
         }
-        classMapBuilder.byDefault().register();
+
+        private String propertyToGetMethod(String property) {
+            return "get" + property.substring(0, 1).toUpperCase(Locale.ENGLISH) + property.substring(1);
+        }
+
+        private boolean isGetMethod(String name) {
+            return name.startsWith("get");
+        }
+
+        private boolean isSetMethod(String name) {
+            return name.startsWith("set");
+        }
+
+        private boolean isNotBlank(String value) {
+            return value != null && !"".equals(value) && !value.trim().equals("");
+        }
+
+        private Class<?> getArgumentType(Field field) throws ClassNotFoundException {
+            Type genericType = field.getGenericType();
+            if (genericType instanceof ParameterizedType) {
+                Type actualType = ((ParameterizedType) genericType).getActualTypeArguments()[0];
+                return Class.forName(actualType.getTypeName());
+            }
+            return null;
+        }
+
     }
 }

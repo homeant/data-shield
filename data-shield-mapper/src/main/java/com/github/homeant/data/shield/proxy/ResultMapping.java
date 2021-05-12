@@ -6,7 +6,7 @@ import java.lang.reflect.Field;
 
 @Data
 public class ResultMapping {
-    private String value;
+    private String actualMapping;
 
     private Field field;
 

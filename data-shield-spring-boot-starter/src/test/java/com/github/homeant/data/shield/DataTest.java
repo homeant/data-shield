@@ -116,8 +116,9 @@ public class DataTest extends AbstractApplicationTest {
             log.info("getUserInfo() 会去查询数据 | {}", userDto.getUserInfo());
             stopWatch.stop();
             log.info("二次调用 getUserInfo(),不进行lazy load | {}", userDto.getUserInfo());
-            userDto.setBookList(new ArrayList<>());
-            log.info("setBookList(X),会删除lazy标记 | {}", userDto.getBookList());
+            log.info("getBookList(),查询book数据 | {}", userDto.getBookList1());
+            userDto.setBookList1(new ArrayList<>());
+            log.info("setBookList(emptyList),会删除lazy标记 | {}", userDto.getBookList1());
             log.info("toString | {}", userDto);
             try {
                 log.info("json打印对象,看是否还会触发lazy | {}", new ObjectMapper().writeValueAsString(userDto));
