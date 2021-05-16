@@ -1,18 +1,12 @@
 package com.github.homeant.data.shield.mapper.orika;
 
-import com.github.homeant.data.shield.annotation.Mapping;
 import com.github.homeant.data.shield.mapper.BeanMapper;
 import com.github.homeant.data.shield.proxy.ProxyFactory;
 import ma.glasnost.orika.MapperFactory;
 import ma.glasnost.orika.impl.DefaultMapperFactory;
-import ma.glasnost.orika.metadata.ClassMapBuilder;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 
 public class OrikaBeanMapper implements BeanMapper {
