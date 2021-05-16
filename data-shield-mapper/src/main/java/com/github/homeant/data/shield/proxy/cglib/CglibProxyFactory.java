@@ -9,6 +9,7 @@ import ma.glasnost.orika.MapperFactory;
 import ma.glasnost.orika.impl.DefaultMapperFactory;
 
 import ma.glasnost.orika.metadata.ClassMapBuilder;
+import ma.glasnost.orika.metadata.TypeFactory;
 import net.sf.cglib.proxy.Callback;
 import net.sf.cglib.proxy.Enhancer;
 import net.sf.cglib.proxy.MethodInterceptor;
@@ -76,7 +77,6 @@ public class CglibProxyFactory implements ProxyFactory {
     }
 
 
-
     static class EnhancedBeanProxy<S, T> implements MethodInterceptor {
 
         private final Class<S> sourceType;
@@ -97,6 +97,7 @@ public class CglibProxyFactory implements ProxyFactory {
             this.source = source;
             this.mapperFactory = mapperFactory;
             ClassMapBuilder<?, ?> classMapBuilder = mapperFactory.classMap(sourceType, targetType);
+            boolean exists = mapperFactory.existsRegisteredMapper(TypeFactory.valueOf(sourceType), TypeFactory.valueOf(targetType), false);
             ReflectionUtils.doWithFields(targetType, field -> {
                 Mapping mapping = field.getAnnotation(Mapping.class);
                 if (mapping != null) {
@@ -110,16 +111,21 @@ public class CglibProxyFactory implements ProxyFactory {
                     }
                     resultMapping.setActualMapping(actualMapping);
                     Field sourceField = ReflectionUtils.findField(sourceType, actualMapping);
-                    if (mapping.lazy() && sourceField != null) {
-                        classMapBuilder.exclude(actualMapping);
-                    } else if (isNotBlank(mapping.value()) && sourceField != null) {
-                        classMapBuilder.field(actualMapping, field.getName());
+                    if (!exists) {
+                        if (mapping.lazy() && sourceField != null) {
+                            classMapBuilder.exclude(actualMapping);
+                        } else if (isNotBlank(mapping.value()) && sourceField != null) {
+                            classMapBuilder.field(actualMapping, field.getName());
+                        }
                     }
                     mappingMap.put(field.getName(), resultMapping);
                 }
             });
-            classMapBuilder.byDefault().register();
-
+            if (!exists) {
+                classMapBuilder.byDefault().register();
+            } else {
+                log.debug("{},{},The mapper already exists and does not need to be registered", sourceType, targetType);
+            }
         }
 
 
@@ -132,7 +138,7 @@ public class CglibProxyFactory implements ProxyFactory {
                 ResultMapping resultMapping = mappingMap.get(property);
                 if (resultMapping.isLazy()) {
                     Field sourceField = ReflectionUtils.findField(sourceType, resultMapping.getActualMapping());
-                    log.info("merthodName:{}", propertyToGetMethod(resultMapping.getActualMapping()));
+                    log.debug("merthodName:{}", propertyToGetMethod(resultMapping.getActualMapping()));
                     Method sourceMethod = ReflectionUtils.findMethod(sourceType, propertyToGetMethod(resultMapping.getActualMapping()));
                     Field field = ReflectionUtils.findField(targetType, property);
                     if (field != null && sourceField != null && sourceMethod != null) {

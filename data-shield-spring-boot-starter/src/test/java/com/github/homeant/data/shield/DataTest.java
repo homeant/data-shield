@@ -129,4 +129,14 @@ public class DataTest extends AbstractApplicationTest {
         });
 
     }
+
+    @Test
+    public void mapperListTest(){
+        List<User> list = userMapper.select();
+        OrikaBeanMapper orikaBeanMapper = new OrikaBeanMapper(new CglibProxyFactory());
+        List<UserDto> userDtoList = orikaBeanMapper.mapList(list, UserDto.class);
+        userDtoList.forEach(userDto -> {
+            //log.info("userInfo:{}",userDto.getUserInfo());
+        });
+    }
 }

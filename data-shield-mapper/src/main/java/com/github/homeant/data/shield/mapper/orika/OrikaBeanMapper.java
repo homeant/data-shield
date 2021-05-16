@@ -8,6 +8,12 @@ import ma.glasnost.orika.impl.DefaultMapperFactory;
 import ma.glasnost.orika.metadata.ClassMapBuilder;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 
 public class OrikaBeanMapper implements BeanMapper {
 
@@ -28,10 +34,28 @@ public class OrikaBeanMapper implements BeanMapper {
         } catch (ClassNotFoundException e) {
             sourceType = source.getClass().getSuperclass();
         }
-        return (T) proxyFactory.createProxy(source, sourceType, targetClazz);
+        return (T) proxyFactory.createProxy(source, sourceType, targetClazz,mapperFactory);
+    }
+
+    public <R, T> List<T> mapList(List<R> sourceList, Class<T> targetClazz) {
+        if (sourceList == null || sourceList.isEmpty()) {
+            return Collections.emptyList();
+        }
+        Class<R> sourceType = (Class<R>) sourceList.get(0).getClass();
+        try {
+            Class.forName(sourceType.getSimpleName());
+        } catch (ClassNotFoundException e) {
+            sourceType = (Class<R>) sourceType.getSuperclass();
+        }
+        List list = new ArrayList();
+        for (R source : sourceList) {
+            list.add(proxyFactory.createProxy(source,sourceType,targetClazz,mapperFactory));
+        }
+        return list;
     }
 
     public ProxyFactory getProxyFactory() {
         return proxyFactory;
     }
+
 }
