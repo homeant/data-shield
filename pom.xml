@@ -47,7 +47,7 @@
         <mybatis.version>3.5.6</mybatis.version>
         <mybatis-spring.version>2.1.2</mybatis-spring.version>
         <commons-lang3.version>3.10</commons-lang3.version>
-        <testng.version>7.0.0</testng.version>
+        <testng.version>7.5.1</testng.version>
 
         <!-- 编译时的编码 -->
         <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
